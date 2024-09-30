@@ -6,13 +6,17 @@ url = "https://download.maxmind.com/app/geoip_download_by_token?date=20240927&ed
 # Destination path
 destination = "/GeoLite2-City.zip"
 
-# Download the file
-response = requests.get(url)
+try:
+    # Download the file
+    response = requests.get(url, stream=True)
+    response.raise_for_status()  # Raise an error for bad responses
 
-# Check if the request was successful
-if response.status_code == 200:
+    # Write the content to the destination file
     with open(destination, 'wb') as file:
-        file.write(response.content)
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+
     print(f"Downloaded successfully to {destination}")
-else:
-    print(f"Failed to download: {response.status_code}")
+
+except requests.exceptions.RequestException as e:
+    print(f"Failed to download: {e}")
